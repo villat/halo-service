@@ -1,0 +1,119 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Globals:
+  Function:
+    Runtime: java11
+    Timeout: 60
+    MemorySize: 512
+
+Parameters:
+  stageName:
+    Type: String
+    Default: dev
+    Description: Backend Service Stage
+  secretName:
+    Default: rds-postgresql-admin
+    Description: Database user and password secret name
+    Type: String
+
+Resources:
+  restApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name:
+        Fn::Sub: halo-service-api-${stageName}
+      StageName:
+        Ref: ${stageName}
+
+  getCompaniesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName:
+        Fn::Sub: halo-service-get-companies-${stageName}
+      CodeUri: .
+      Handler: com.empirical.handlers.CompanyHandler::getCompanies
+      Events:
+        List:
+          Type: Api
+          Properties:
+            Path: /companies
+            Method: GET
+            RestApiId:
+              Ref: restApi
+      Environment:
+        Variables:
+          RDS_HOST: !Sub '{{resolve:secretsmanager:${secretName}:SecretString:host}}'
+          RDS_DB_NAME: !Sub '{{resolve:secretsmanager:${secretName}:SecretString:dbInstanceIdentifier}}'
+          RDS_USERNAME: !Sub '{{resolve:secretsmanager:${secretName}:SecretString:username}}'
+          RDS_PASSWORD: !Sub '{{resolve:secretsmanager:${secretName}:SecretString:password}}'
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-eb3d15ec
+        SubnetIds:
+          - subnet-d22b51b4
+          - subnet-4ecfc503
+          - subnet-8c7332ad
+          - subnet-668e0057
+          - subnet-14fcb84b
+          - subnet-313a063f
+      Role: !GetAtt role.Arn
+
+  createCompanyFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName:
+        Fn::Sub: halo-service-create-company-${stageName}
+      CodeUri: .
+      Handler: com.empirical.handlers.CompanyHandler::createCompany
+      Events:
+        List:
+          Type: Api
+          Properties:
+            Path: /companies
+            Method: POST
+            RestApiId:
+              Ref: restApi
+      Environment:
+        Variables:
+          RDS_HOST: !Sub '{{resolve:secretsmanager:${secretName}:SecretString:host}}'
+          RDS_DB_NAME: !Sub '{{resolve:secretsmanager:${secretName}:SecretString:dbInstanceIdentifier}}'
+          RDS_USERNAME: !Sub '{{resolve:secretsmanager:${secretName}:SecretString:username}}'
+          RDS_PASSWORD: !Sub '{{resolve:secretsmanager:${secretName}:SecretString:password}}'
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-eb3d15ec
+        SubnetIds:
+          - subnet-d22b51b4
+          - subnet-4ecfc503
+          - subnet-8c7332ad
+          - subnet-668e0057
+          - subnet-14fcb84b
+          - subnet-313a063f
+      Role: !GetAtt role.Arn
+
+  role:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaRole
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+      Policies:
+        - PolicyName: rds-iamauth
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 'rds-db:connect'
+                Resource: '*'
+      Path: /service-role/
