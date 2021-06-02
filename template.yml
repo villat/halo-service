@@ -4,7 +4,7 @@ Transform: AWS::Serverless-2016-10-31
 Globals:
   Function:
     Runtime: java11
-    Timeout: 60
+    Timeout: 120
     MemorySize: 512
 
 Parameters:
@@ -13,7 +13,7 @@ Parameters:
     Default: dev
     Description: Backend Service Stage
   secretName:
-    Default: rds-postgresql-admin
+    Default: dev-rds
     Description: Database user and password secret name
     Type: String
 
@@ -24,7 +24,14 @@ Resources:
       Name:
         Fn::Sub: halo-service-api-${stageName}
       StageName:
-        Ref: ${stageName}
+        Ref: stageName
+      Auth:
+        Authorizers:
+          GeneralAuth:
+            UserPoolArn:
+              - arn:aws:cognito-idp:us-east-1:608236930044:userpool/us-east-1_SuntsKRjy
+            Identity:
+              Header: Authorization
 
   getCompaniesFunction:
     Type: AWS::Serverless::Function
@@ -37,6 +44,8 @@ Resources:
         List:
           Type: Api
           Properties:
+            Auth:
+              Authorizer: GeneralAuth
             Path: /companies
             Method: GET
             RestApiId:
@@ -44,19 +53,20 @@ Resources:
       Environment:
         Variables:
           RDS_HOST: !Sub '{{resolve:secretsmanager:${secretName}:SecretString:host}}'
-          RDS_DB_NAME: !Sub '{{resolve:secretsmanager:${secretName}:SecretString:dbInstanceIdentifier}}'
+          RDS_DB_NAME: !Sub '{{resolve:secretsmanager:${secretName}:SecretString:dbname}}'
           RDS_USERNAME: !Sub '{{resolve:secretsmanager:${secretName}:SecretString:username}}'
           RDS_PASSWORD: !Sub '{{resolve:secretsmanager:${secretName}:SecretString:password}}'
+          USER_POOL_ID: 'us-east-1_SuntsKRjy'
       VpcConfig:
         SecurityGroupIds:
-          - sg-eb3d15ec
+          - sg-0cb09fef2335184e1
         SubnetIds:
-          - subnet-d22b51b4
-          - subnet-4ecfc503
-          - subnet-8c7332ad
-          - subnet-668e0057
-          - subnet-14fcb84b
-          - subnet-313a063f
+          - subnet-05127700ea24fc9d1
+          - subnet-0f8599f0deec73013
+          - subnet-07c4974c6ac5bf3c4
+          - subnet-09e88dc7be2a5dd2a
+          - subnet-02aa226174e008cdc
+          - subnet-09b34bba3881d30ef
       Role: !GetAtt role.Arn
 
   createCompanyFunction:
@@ -70,6 +80,8 @@ Resources:
         List:
           Type: Api
           Properties:
+            Auth:
+              Authorizer: GeneralAuth
             Path: /companies
             Method: POST
             RestApiId:
@@ -77,19 +89,56 @@ Resources:
       Environment:
         Variables:
           RDS_HOST: !Sub '{{resolve:secretsmanager:${secretName}:SecretString:host}}'
-          RDS_DB_NAME: !Sub '{{resolve:secretsmanager:${secretName}:SecretString:dbInstanceIdentifier}}'
+          RDS_DB_NAME: !Sub '{{resolve:secretsmanager:${secretName}:SecretString:dbname}}'
           RDS_USERNAME: !Sub '{{resolve:secretsmanager:${secretName}:SecretString:username}}'
           RDS_PASSWORD: !Sub '{{resolve:secretsmanager:${secretName}:SecretString:password}}'
+          USER_POOL_ID: 'us-east-1_SuntsKRjy'
       VpcConfig:
         SecurityGroupIds:
-          - sg-eb3d15ec
+          - sg-0cb09fef2335184e1
         SubnetIds:
-          - subnet-d22b51b4
-          - subnet-4ecfc503
-          - subnet-8c7332ad
-          - subnet-668e0057
-          - subnet-14fcb84b
-          - subnet-313a063f
+          - subnet-05127700ea24fc9d1
+          - subnet-0f8599f0deec73013
+          - subnet-07c4974c6ac5bf3c4
+          - subnet-09e88dc7be2a5dd2a
+          - subnet-02aa226174e008cdc
+          - subnet-09b34bba3881d30ef
+      Role: !GetAtt role.Arn
+
+  createOwnerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName:
+        Fn::Sub: halo-service-create-owner-${stageName}
+      CodeUri: .
+      Handler: com.empirical.handlers.OwnerHandler::createOwner
+      Events:
+        List:
+          Type: Api
+          Properties:
+            Auth:
+              Authorizer: GeneralAuth
+            Path: /owners
+            Method: POST
+            RestApiId:
+              Ref: restApi
+      Environment:
+        Variables:
+          RDS_HOST: !Sub '{{resolve:secretsmanager:${secretName}:SecretString:host}}'
+          RDS_DB_NAME: !Sub '{{resolve:secretsmanager:${secretName}:SecretString:dbname}}'
+          RDS_USERNAME: !Sub '{{resolve:secretsmanager:${secretName}:SecretString:username}}'
+          RDS_PASSWORD: !Sub '{{resolve:secretsmanager:${secretName}:SecretString:password}}'
+          USER_POOL_ID: 'us-east-1_SuntsKRjy'
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0cb09fef2335184e1
+        SubnetIds:
+          - subnet-05127700ea24fc9d1
+          - subnet-0f8599f0deec73013
+          - subnet-07c4974c6ac5bf3c4
+          - subnet-09e88dc7be2a5dd2a
+          - subnet-02aa226174e008cdc
+          - subnet-09b34bba3881d30ef
       Role: !GetAtt role.Arn
 
   role:
@@ -108,6 +157,7 @@ Resources:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
         - arn:aws:iam::aws:policy/service-role/AWSLambdaRole
         - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+        - arn:aws:iam::aws:policy/AmazonCognitoPowerUser
       Policies:
         - PolicyName: rds-iamauth
           PolicyDocument:
