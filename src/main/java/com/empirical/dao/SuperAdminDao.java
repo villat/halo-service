@@ -33,7 +33,7 @@ public class SuperAdminDao extends DaoUtils<SuperAdmin> implements GenericDao<Su
     public SuperAdmin getByUsername(String username){
         SuperAdmin response;
         try (Session session = HibernateUtils.getSessionFactory().openSession()) {
-            Query query = session.createQuery("from super_admins where username=:username")
+            Query query = session.createQuery("from SuperAdmin where username=:username")
                     .setParameter("username", username);
             response = (SuperAdmin) query.uniqueResult();
             session.close();

@@ -13,10 +13,10 @@ public abstract class BaseEntity {
     @GeneratedValue
     private Long id;
 
-    @Column(name = "create_date", insertable = false, updatable = false)
+    @Column(name = "create_date")
     protected Date createdAt;
 
-    @Column(name = "update_date", insertable = false)
+    @Column(name = "update_date")
     protected Date updatedAt;
 
     public Long getId() {

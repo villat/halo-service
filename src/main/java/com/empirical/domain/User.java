@@ -1,8 +1,13 @@
 package com.empirical.domain;
 
-import javax.persistence.MappedSuperclass;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
 
-@MappedSuperclass
+@Entity
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public abstract class User extends BaseEntity {
 
     public enum Role {
@@ -13,6 +18,8 @@ public abstract class User extends BaseEntity {
 
     private String username;
     private String email;
+
+    @Enumerated(EnumType.STRING)
     private Role role;
 
     public String getUsername() {

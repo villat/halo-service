@@ -141,6 +141,42 @@ Resources:
           - subnet-09b34bba3881d30ef
       Role: !GetAtt role.Arn
 
+  assignAdminRole:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName:
+        Fn::Sub: halo-service-post-admin-${stageName}
+      CodeUri: .
+      Handler: com.empirical.handlers.AdminHandler::assignAdminRole
+      Events:
+        List:
+          Type: Api
+          Properties:
+            Auth:
+              Authorizer: GeneralAuth
+            Path: /admins
+            Method: POST
+            RestApiId:
+              Ref: restApi
+      Environment:
+        Variables:
+          RDS_HOST: !Sub '{{resolve:secretsmanager:${secretName}:SecretString:host}}'
+          RDS_DB_NAME: !Sub '{{resolve:secretsmanager:${secretName}:SecretString:dbname}}'
+          RDS_USERNAME: !Sub '{{resolve:secretsmanager:${secretName}:SecretString:username}}'
+          RDS_PASSWORD: !Sub '{{resolve:secretsmanager:${secretName}:SecretString:password}}'
+          USER_POOL_ID: 'us-east-1_SuntsKRjy'
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0cb09fef2335184e1
+        SubnetIds:
+          - subnet-05127700ea24fc9d1
+          - subnet-0f8599f0deec73013
+          - subnet-07c4974c6ac5bf3c4
+          - subnet-09e88dc7be2a5dd2a
+          - subnet-02aa226174e008cdc
+          - subnet-09b34bba3881d30ef
+      Role: !GetAtt role.Arn
+
   role:
     Type: AWS::IAM::Role
     Properties:

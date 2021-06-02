@@ -33,7 +33,7 @@ public class OwnerDao extends DaoUtils<Owner> implements GenericDao<Owner> {
     public Owner getByUsername(String username){
         Owner response;
         try (Session session = HibernateUtils.getSessionFactory().openSession()) {
-            Query query = session.createQuery("from owners where username=:username")
+            Query query = session.createQuery("from Owner where username=:username")
                     .setParameter("username", username);
             response = (Owner) query.uniqueResult();
             session.close();

@@ -45,11 +45,19 @@ public class CognitoUtils {
         }
     }
 
-    public static String getAuthorizedUser(APIGatewayProxyRequestEvent event){
+    public static String getAuthorizedUserUsername(APIGatewayProxyRequestEvent event){
+        return getAuthorizedUserField(event,"cognito:username");
+    }
+
+    public static String getAuthorizedUserEmail(APIGatewayProxyRequestEvent event){
+        return getAuthorizedUserField(event,"email");
+    }
+
+    private static String getAuthorizedUserField(APIGatewayProxyRequestEvent event, String field) {
         String[] tokenChunks = event.getHeaders().get("Authorization").split("\\.");
         Base64.Decoder decoder = Base64.getDecoder();
         String payload = new String(decoder.decode(tokenChunks[1]));
-        return new JSONObject(payload).getString("cognito:username");
+        return new JSONObject(payload).getString(field);
     }
 
 }
