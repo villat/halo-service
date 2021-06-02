@@ -24,9 +24,10 @@ Example body:
 {
     "username": "test",
     "email": "test@gmail.com",
-    "password": "Lenght8OfMoreAndSpecialCharacter!"
+    "password": "Somepassword!"
 }
 ```
+The password must contain a lower case letter, an upper case letter, a special character, a number, and be at least 8 characters long. Also, it's only a temporary password, when the Owner user logs in to Cognito for the first time, he'll need to change it.
 
 ### 3) Endpoint to create a new Company.
 
