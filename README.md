@@ -43,3 +43,52 @@ Example body:
     "type": "Paper"
 }
 ```
+
+### 4) Endpoint to get Breast Cancer predictions from SageMaker
+
+It's a POST method which needs an **Authorization** header from Cognito sign up (no role required). 
+
+https://xywakuxm55.execute-api.us-east-1.amazonaws.com/dev/predictions
+
+Example body:
+
+```json
+{
+  "instances": [
+    {
+      "features": [
+        13.49,
+        22.3,
+        86.91,
+        561,
+        0.08752,
+        0.07697999999999999,
+        0.047510000000000004,
+        0.033839999999999995,
+        0.1809,
+        0.057179999999999995,
+        0.2338,
+        1.3530000000000002,
+        1.735,
+        20.2,
+        0.004455,
+        0.013819999999999999,
+        0.02095,
+        0.01184,
+        0.01641,
+        0.001956,
+        15.15,
+        31.82,
+        99,
+        698.8,
+        0.1162,
+        0.1711,
+        0.2282,
+        0.1282,
+        0.2871,
+        0.06917000000000001
+      ]
+    }
+  ]
+}
+```
