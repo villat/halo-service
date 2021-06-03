@@ -177,6 +177,38 @@ Resources:
           - subnet-09b34bba3881d30ef
       Role: !GetAtt role.Arn
 
+  getPredictionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName:
+        Fn::Sub: halo-service-get-predictions-${stageName}
+      CodeUri: .
+      Handler: com.empirical.handlers.SageMakerHandler::getPrediction
+      Events:
+        List:
+          Type: Api
+          Properties:
+            Auth:
+              Authorizer: GeneralAuth
+            Path: /predictions
+            Method: POST
+            RestApiId:
+              Ref: restApi
+      Environment:
+        Variables:
+          SAGEMAKER_ENDPOINT: 'DEMO-linear-endpoint-202106030007'
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0cb09fef2335184e1
+        SubnetIds:
+          - subnet-05127700ea24fc9d1
+          - subnet-0f8599f0deec73013
+          - subnet-07c4974c6ac5bf3c4
+          - subnet-09e88dc7be2a5dd2a
+          - subnet-02aa226174e008cdc
+          - subnet-09b34bba3881d30ef
+      Role: !GetAtt role.Arn
+
   role:
     Type: AWS::IAM::Role
     Properties:
@@ -201,5 +233,12 @@ Resources:
             Statement:
               - Effect: Allow
                 Action: 'rds-db:connect'
+                Resource: '*'
+        - PolicyName: sagemaker-invoke-endpoint
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 'sagemaker:InvokeEndpoint'
                 Resource: '*'
       Path: /service-role/
